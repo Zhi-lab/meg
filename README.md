@@ -1,1 +1,3 @@
-# meg
+# megellan test
+a=1;
+print(a)
