@@ -367,9 +367,9 @@ def final_des_set():
 init_agent()
 init_passenger()
 while Agent.passenger_num < passengerTotal:
-    v_module()
+    v_module() #改变了头朝向，所以调用一次V模块
     move()
-    v_module()
+    v_module() #进行了一次移动，所以调用一次V模块。否则agent就会位于subject_map的边界之外
     final_des_set()
     r_module()
     #print([Agent.row, Agent.column])
