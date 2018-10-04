@@ -1,4 +1,5 @@
 import random
+import math
 
 maze = [[1,0,1,0,4,0,1,0,1,0,1],
         [0,0,0,0,0,0,0,0,0,0,0],
@@ -121,6 +122,7 @@ def init_passenger():
 
 #确定要加入模块的建筑，并将这些建筑的记忆强度设为1
 def v_module():
+    global subject_map
     for i in range(1,Agent.vision+1):
         if Agent.direction == 1:
             subject_map[Agent.row - i][Agent.column - 1] = 1
@@ -173,9 +175,9 @@ def judge_edge():
     dist_east = min(dist1,dist2)
     dist_south = min(dist3,dist4)
     if dist_east == (blockEachLine*2-2)-Agent.column:
-        dist_east = 999
+        dist_east = math.inf
     if dist_south == (blockEachLine*2-2)-Agent.row:
-        dist_south = 999
+        dist_south = math.inf
 
     for i in range(0,blockEachLine*2-1):
         if subject_map[Agent.row+1][i] > 0:
@@ -196,34 +198,27 @@ def judge_edge():
     dist_west = min(dist5,dist6)
     dist_north = min(dist7,dist8)
     if dist_west == Agent.column:
-        dist_west = 999
+        dist_west = math.inf
     if dist_north == Agent.row:
-        dist_north = 999
+        dist_north = math.inf
     dist_list = (dist_north,dist_south,dist_west,dist_east)
 
-    j = 0
-    return_list = [0,0,0,0]
+    return_list = []
     if min(dist_list) == dist_north:
-        return_list[j] = 1
-        j = j+1
+        return_list.append(1)
     if min(dist_list) == dist_south:
-        return_list[j] = 2
-        j = j+1
+        return_list.append(2)
     if min(dist_list) == dist_west:
-        return_list[j] = 3
-        j = j+1
+        return_list.append(3)
     if min(dist_list) == dist_east:
-        return_list[j] = 4
-        j = j+1
+        return_list.append(4)
     return_num = random.choice(return_list)
-    while return_num == 0:
-        return_num = random.choice(return_list)
     return return_num
 
 #路线规划和下一步目标（头朝向）的设置
 def r_module():
     short_route = [0,0]
-    if Agent.final_des != [999,999]:
+    if Agent.final_des:
         #生成最短路径
         if Agent.deliver == 0:
             short_route = [Agent.final_des[0]-Agent.row, Agent.final_des[1]-Agent.column]
@@ -253,12 +248,13 @@ def r_module():
             Agent.direction = 2
         if short_route[0] < 0 and short_route[1] == 0:
             Agent.direction = 1
-    if Agent.final_des == [999,999]:
+    if not Agent.final_des:
         Agent.direction = judge_edge()
 
 #--------------------------------------------------------------
 #寻找乘客（启用passenger_map）
 def init_find_passenger():
+    global passenger_map
     passenger_map = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -303,23 +299,24 @@ def passenger_move():
         forget()
 
 def direction_detection():
-    return_list = [0,0,0,0]
+    return_list = []
     if Agent.row < blockEachLine*2-3:
         if passenger_map[Agent.row+step][Agent.column] == 0:
-            return_list[1] = 2
+            return_list.append(2)
     if Agent.row > 1:
         if passenger_map[Agent.row-step][Agent.column] == 0:
-            return_list[0] = 1
+            return_list.append(1)
     if Agent.column < blockEachLine*2-3:
         if passenger_map[Agent.row][Agent.column+step] == 0:
-            return_list[3] = 4
+            return_list.append(4)
     if Agent.column > 1:
         if passenger_map[Agent.row][Agent.column-step] == 0:
-            return_list[2] = 3
-    return_num = random.choice(return_list)
-    while return_num == 0:
+            return_list.append(3)
+    if not return_list:
+        return random.choice([1,2,3,4])
+    else:
         return_num = random.choice(return_list)
-    return return_num
+        return return_num
 
 def passenger_final_des_set():
     if Agent.row == passenger[Agent.passenger_num][0] or Agent.column == passenger[Agent.passenger_num][1]:
@@ -344,6 +341,8 @@ def find_passenger():
         r_module()
         if Agent.row == passenger[Agent.passenger_num][0] and Agent.column == passenger[Agent.passenger_num][1]:
             return
+            #break
+        print(passenger_map)
         print([Agent.row-passenger[Agent.passenger_num][0],Agent.column-passenger[Agent.passenger_num][1]])
 #--------------------------------------------------------------
 
@@ -355,7 +354,7 @@ def final_des_set():
         if subject_map[passenger_des[Agent.passenger_num][0]][passenger_des[Agent.passenger_num][1]] > 0:
             Agent.final_des = passenger_des[Agent.passenger_num]
         elif subject_map[passenger_des[Agent.passenger_num][0]][passenger_des[Agent.passenger_num][1]] == 0:
-            Agent.final_des = [999,999]
+            Agent.final_des = None
     if abs(Agent.row - passenger_des[Agent.passenger_num][0]) == 1 and abs(Agent.column - passenger_des[Agent.passenger_num][1]) == 1 and Agent.deliver == 1:
         Agent.deliver = 0
         Agent.passenger_num = Agent.passenger_num+1
