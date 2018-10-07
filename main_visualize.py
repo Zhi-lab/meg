@@ -4,6 +4,7 @@ import random
 import time
 import megallen_model as mm
 import configuration as cf
+import DataOutput as out
 
 def drawMaps(can,size,radius):
     for c in range(0,size):
@@ -110,7 +111,7 @@ def modeling():
     print(mm.Agent.passenger_num)
     print(mm.passengerTotal)
 
-
+    out.init_data()
     #测试用参数，控制最大循环执行次数
     processStep = 0
     BigProcessStep = 10
@@ -119,11 +120,14 @@ def modeling():
             print("findPassenger")
             drawPassenger(canvas)
             #mm.init_find_passenger()
+            cf.isChange = 0  # 除了接到/送到乘客的时刻，其他时候isChange都为0
             mm.passenger_v_module()
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             moveAgent(canvas, mm.Agent, cf.step)
             mm.passenger_move()
+            cf.countStep = cf.countStep + 1
+            out.data_output()
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             mm.passenger_final_des_set()
@@ -131,10 +135,13 @@ def modeling():
             drawDestination(canvas, mm.passenger_des[mm.Agent.passenger_num])
         else:
             print("findDestination")
+            cf.isChange = 0  # 除了接到/送到乘客的时刻，其他时候isChange都为0
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             moveAgent(canvas, mm.Agent, cf.step)
             mm.move()
+            cf.countStep = cf.countStep + 1
+            out.data_output()
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             mm.final_des_set()
