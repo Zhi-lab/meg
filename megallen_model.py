@@ -1,6 +1,7 @@
 import mpmath
 import random
 import configuration as cf
+import DataOutput as out
 
 #示例地图
 maze = [[1,0,1,0,4,0,1,0,1,0,1],
@@ -47,8 +48,8 @@ class Agent:
     row = 0
     column = 0
     direction = 0 #1北2南3西4东
-    vision = 8
-    memory = 2
+    vision = 1
+    memory = 15
     passenger_memory = 600
     final_des = [0,0]
     next_des = [0,0]
@@ -56,7 +57,7 @@ class Agent:
     passenger_num = 0
 
 #总共的乘客数量
-passengerTotal = 5
+passengerTotal = 15
 passenger = []
 
 #if passengerTotal = 15, passenger = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
@@ -70,16 +71,29 @@ class MazePos:
     for i in range(0,cf.blockEachLine*2-1):
         #j对应的是列
         for j in range(0,cf.blockEachLine*2-1):
-            for k in range(2,7):
+            for k in range(2,2+cf.storeNum):
                 if maze[i][j] == k:
                     store.append([i,j])
                     break
 
 passenger[0] = [2*random.randint(1,5)-1,2*random.randint(1,5)-1]
-#乘客的目标地点，总共是15个目的地
-passenger_des = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+# 乘客的目标地点，总共是15个目的地。
+passenger_des = []
+for counter in range(0,passengerTotal):
+    passenger_des.append([0,0])
 
 def passenger_destination():
+    store_block = []
+    for i in range(0, cf.storeNum):
+        store_block.append(i)
+    passenger_count = 0
+    while passenger_count < passengerTotal:
+        random.shuffle(store_block)
+        for j in range(0, cf.storeNum):
+            passenger_des[j+cf.storeNum*int(passenger_count/cf.storeNum)] = MazePos.store[store_block[j]]
+            passenger_count = passenger_count+1
+
+    '''
     store_block1 = store_block2 = store_block3 = [0,1,2,3,4]
     random.shuffle(store_block1)
     random.shuffle(store_block2)
@@ -90,10 +104,11 @@ def passenger_destination():
         passenger_des[i] = MazePos.store[store_block2[i-int(passengerTotal/3)]]
     for i in range(int(passengerTotal*2/3),passengerTotal):
         passenger_des[i] = MazePos.store[store_block3[i-int(passengerTotal*2/3)]]
-
+    '''
     for j in range(1,passengerTotal):
         passenger[j] = [2 * random.randint(1, 5) - 1, 2 * random.randint(1, 5) - 1]
-        while abs(passenger[j][0] - passenger_des[j-1][0]) == 1 or abs(passenger[j][1] - passenger_des[j-1][1] == 1):
+        while abs(passenger[j][0] - passenger_des[j-1][0]) == 1 or abs(passenger[j][1] - passenger_des[j-1][1] == 1) \
+                or abs(passenger[j][0] - passenger_des[j][0]) == 1 or abs(passenger[j][1] - passenger_des[j][1] == 1):
             passenger[j] = [2 * random.randint(1, 5) - 1, 2 * random.randint(1, 5) - 1]
 
 #初始化agent位置、头朝向、目标
@@ -184,8 +199,8 @@ def move():
 #路线规划和下一步目标（头朝向）的设置
 def r_module():
     short_route = [0,0]
-    print("Agent.final_des")
-    print(Agent.final_des)
+    #print("Agent.final_des")
+    #print(Agent.final_des)
     if Agent.final_des != None:
         #生成最短路径
         if Agent.deliver == 0:
@@ -220,8 +235,8 @@ def r_module():
             Agent.direction = 1
     if not Agent.final_des:
         Agent.direction = judge_edge()
-    print("current direction")
-    print(Agent.direction)
+    #print("current direction")
+    #print(Agent.direction)
 
 #地图边界检测
 def judge_edge():
@@ -277,15 +292,16 @@ def judge_edge():
     if min(dist_list) == dist_east:
         return_list.append(4)
     return_num = random.choice(return_list)
-    print(dist_list)
     return return_num
 
 #设定agent的最终目标（乘客数量送到之后才会+1）
 def final_des_set():
     #passenger_destination()
-    print(subject_map)
     if Agent.row == passenger[Agent.passenger_num][0] and Agent.column == passenger[Agent.passenger_num][1] and Agent.deliver == 0:
+        cf.isChange = 1
+        out.data_output(cf.id)  # 在送到/接到乘客的位置点输出一次数据，从而给这一步打上isChange=1的标记
         Agent.deliver = 1
+        cf.countStep = 0  # 计步器，每走一步就加一，接到乘客或者送到乘客之后清零
         if subject_map[passenger_des[Agent.passenger_num][0]][passenger_des[Agent.passenger_num][1]] > 0:
             Agent.final_des = passenger_des[Agent.passenger_num]
         #elif subject_map[passenger_des[Agent.passenger_num][0]][passenger_des[Agent.passenger_num][1]] == 0:
@@ -300,8 +316,11 @@ def final_des_set():
             Agent.final_des = None
         #如果走到目标store了，将已送达乘客+1,目标转为下一乘客，刷新找乘客用的记忆地图
         if abs(Agent.row - passenger_des[Agent.passenger_num][0]) == 1 and abs(Agent.column - passenger_des[Agent.passenger_num][1]) == 1:
+            cf.isChange = 1
+            out.data_output(cf.id)  # 在送到/接到乘客的位置点输出一次数据
             Agent.deliver = 0
-            print("goal")
+            cf.countStep = 0  # 计步器，每走一步就加一，接到乘客或者送到乘客之后清零
+            #print("goal")
             Agent.passenger_num = Agent.passenger_num+1
             init_find_passenger()
         #if Agent.passenger_num < passengerTotal:
