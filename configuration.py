@@ -30,5 +30,8 @@ isChange = 0
 # 存储学习曲线的数组
 singleLearningCurve = []
 
+# agent编号
+id = 233
+
 passenger_display = None
 

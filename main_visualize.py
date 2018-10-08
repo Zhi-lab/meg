@@ -56,8 +56,8 @@ def drawPassenger(can):
     passengerPos = [(int(currentPassenger[0] / 2) + 1)  * (cf.buidlingLen + cf.margin) , (int(currentPassenger[1] / 2) + 1) * (cf.buidlingLen + cf.margin)]
     r = cf.margin
     passenger_display = can.create_oval(passengerPos[1], passengerPos[0], passengerPos[1] + r, passengerPos[0] + r, fill = 'green',tags = 'passenger')
-    print("passenger")
-    print(currentPassenger[0], currentPassenger[1])
+    #print("passenger")
+    #print(currentPassenger[0], currentPassenger[1])
     render()
 
 #只在已接上乘客时才，才高亮目标Block,和删除乘客显示
@@ -99,25 +99,25 @@ def modeling():
     drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
     mm.init_agent()
     mm.init_passenger()
-    print(mm.Agent.row)
-    print(mm.Agent.column)
-    print(mm.Agent.direction)
+    #print(mm.Agent.row)
+    #print(mm.Agent.column)
+    #print(mm.Agent.direction)
 
     #agentPos = [(int(Agent.row / 2) + 1)  * (buidlingLen + margin) , (int(Agent.column / 2) + 1) * (buidlingLen + margin)]
     drawAgent(canvas)#,agentPos[0],agentPos[1])
     currentPassengerID = 0
     #passengerPos = [(int(passenger[0][0] / 2) + 1)  * (buidlingLen + margin) , (int(passenger[0][1] / 2) + 1) * (buidlingLen + margin)]
 
-    print(mm.Agent.passenger_num)
-    print(mm.passengerTotal)
+    #print(mm.Agent.passenger_num)
+    #print(mm.passengerTotal)
 
-    out.init_data()
+    out.init_data(cf.id)
     #测试用参数，控制最大循环执行次数
     processStep = 0
     BigProcessStep = 10
     while mm.Agent.passenger_num < mm.passengerTotal:
         if mm.Agent.deliver == 0:
-            print("findPassenger")
+            #print("findPassenger")
             drawPassenger(canvas)
             #mm.init_find_passenger()
             cf.isChange = 0  # 除了接到/送到乘客的时刻，其他时候isChange都为0
@@ -127,25 +127,27 @@ def modeling():
             moveAgent(canvas, mm.Agent, cf.step)
             mm.passenger_move()
             cf.countStep = cf.countStep + 1
-            out.data_output()
+            out.data_output(cf.id)
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             mm.passenger_final_des_set()
             mm.final_des_set()
-            drawDestination(canvas, mm.passenger_des[mm.Agent.passenger_num])
+            if mm.Agent.passenger_num < mm.passengerTotal:
+                drawDestination(canvas, mm.passenger_des[mm.Agent.passenger_num])
         else:
-            print("findDestination")
+            #print("findDestination")
             cf.isChange = 0  # 除了接到/送到乘客的时刻，其他时候isChange都为0
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             moveAgent(canvas, mm.Agent, cf.step)
             mm.move()
             cf.countStep = cf.countStep + 1
-            out.data_output()
+            out.data_output(cf.id)
             mm.v_module()
             drawMemory(canvas, cf.blockEachLine, cf.buidlingLen)
             mm.final_des_set()
-            drawDestination(canvas, mm.passenger_des[mm.Agent.passenger_num])
+            if mm.Agent.passenger_num < mm.passengerTotal:
+                drawDestination(canvas, mm.passenger_des[mm.Agent.passenger_num])
         mm.r_module()
         updateDeliveredPassengerLabel(passenger_id_text)
 
