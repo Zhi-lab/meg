@@ -5,7 +5,7 @@ import configuration as cf
 #输出表头
 def init_data(ID):
     global f
-    f = open('magellanData' + str(ID) + '.txt', 'a')
+    f = open('magellanData_' + ID + '.txt', 'a')
     print('ID', 'Agent.row', 'Agent.column', 'Agent.direction', 'Agent.deliver', 'deliverNum', 'destination.row',
           'destination.column', 'bestDistance', 'actualDistance', 'isChange', file=f)  # isChange=1表示agent.deliver马上就要切换
 
@@ -17,17 +17,20 @@ def data_output(ID):
         destinationRow = mm.passenger_des[mm.Agent.passenger_num][0]
         destinationColumn = mm.passenger_des[mm.Agent.passenger_num][1]
         bestDistance = abs(destinationRow - mm.passenger[mm.Agent.passenger_num][0])/2 + abs(destinationColumn - mm.passenger[mm.Agent.passenger_num][1])/2 - 1
-        print(ID, mm.Agent.row, mm.Agent.column, mm.Agent.direction, mm.Agent.deliver, deliverNum, destinationRow, destinationColumn
-              , bestDistance, cf.countStep, cf.isChange, file=f)
+        print(mm.Agent.agentID, mm.Agent.row, mm.Agent.column, mm.Agent.direction, mm.Agent.deliver, deliverNum, destinationRow, destinationColumn
+              , bestDistance, mm.Agent.countStep, mm.Agent.isDeliverChange, file=f)
         #存储学习曲线
-        if cf.isChange == 1:
-            cf.singleLearningCurve.append(mm.Agent.passenger_num+1)
-            cf.singleLearningCurve.append(cf.countStep - bestDistance)
-            print('learningcurve'+str(cf.singleLearningCurve))
-            return cf.singleLearningCurve
+        if mm.Agent.isDeliverChange == 1:
+            mm.singleLearningCurve.append(mm.Agent.passenger_num+1)
+            mm.singleLearningCurve.append(mm.Agent.countStep - bestDistance)
+            print('learningcurve'+str(mm.singleLearningCurve))
+            return mm.singleLearningCurve
+    return None
+    """
     if mm.Agent.deliver == 0:
         destinationRow = mm.passenger[mm.Agent.passenger_num][0]
         destinationColumn = mm.passenger[mm.Agent.passenger_num][1]
         bestDistance = abs(destinationRow - mm.passenger_des[mm.Agent.passenger_num-1][0])/2 + abs(destinationColumn - mm.passenger_des[mm.Agent.passenger_num-1][1])/2 - 1
         print(ID, mm.Agent.row, mm.Agent.column, mm.Agent.direction, mm.Agent.deliver, deliverNum, destinationRow, destinationColumn,
               bestDistance, cf.countStep, cf.isChange, file=f)
+    """
